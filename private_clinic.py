@@ -29,7 +29,7 @@ async def diagnostic_radiology_button(update: Update, context: CallbackContext) 
     ]
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
     await update.message.reply_text(
-        "Выберите, что вам интересно 💚 :",
+        "Выберите, что вам интересно 💚:",
         reply_markup=reply_markup
     )
 
