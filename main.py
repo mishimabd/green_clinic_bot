@@ -2,7 +2,7 @@ from datetime import datetime
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters
 from basic_info import schedule_of_work, contact_numbers, location_of_clinic, menu
-from ai_assistent import ai_assistant, under_development
+from ai_assistent import ai_assistant, under_development, ai_assistant_respond
 from doctor_appointment import doctor_appointment
 from buttons import start_button
 from private_clinic import (private_clinic_button,
@@ -24,8 +24,6 @@ def main():
         MessageHandler(filters.TEXT & filters.Regex("^(График Работы 🕒)$"), schedule_of_work))
     application.add_handler(
         MessageHandler(filters.TEXT & filters.Regex("^(Запись к специалисту 🩺)$"), doctor_appointment))
-    application.add_handler(
-        MessageHandler(filters.TEXT & filters.Regex("^(Виртуальный ассистент 🤖)$"), ai_assistant))
     application.add_handler(
         MessageHandler(filters.TEXT & filters.Regex("^(Популярные направления 💡)$"), popular_service))
     application.add_handler(
@@ -50,9 +48,12 @@ def main():
         MessageHandler(filters.TEXT & filters.Regex("^(Компьютерная томография)$"), ct_contraindications))
     application.add_handler(
         MessageHandler(filters.TEXT & filters.Regex("^(Рентген)$"), xray_contraindications))
+
     application.add_handler(CallbackQueryHandler(button_click_handler))
     application.add_handler(CommandHandler("back", menu))
-
+    application.add_handler(
+        MessageHandler(filters.TEXT & filters.Regex("^(Виртуальный ассистент 🤖)$"), ai_assistant_respond))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_assistant))
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
