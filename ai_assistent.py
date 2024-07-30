@@ -29,7 +29,7 @@ async def call_groq_api(message_content: str) -> str:
                     "content": message_content
                 }
             ],
-            model="mixtral-8x7b-32768"
+            model="llama-3.1-70b-versatile"
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
