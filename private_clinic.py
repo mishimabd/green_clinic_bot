@@ -36,16 +36,23 @@ async def diagnostic_radiology_button(update: Update, context: CallbackContext) 
 
 async def check_up_button(update: Update, context: CallbackContext) -> None:
     buttons = [
-        [KeyboardButton("Для мужчин")],
-        [KeyboardButton("Для женщин")],
-        [KeyboardButton("Для детей")],
-        [KeyboardButton("Назад в меню")],
+        [InlineKeyboardButton("Для мужчин", callback_data='for_men')],
+        [InlineKeyboardButton("Для женщин", callback_data='for_women')],
+        [InlineKeyboardButton("Для детей", callback_data='for_children')],
+        [InlineKeyboardButton("Назад в меню", callback_data='back_to_menu')],
     ]
-    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    reply_markup = InlineKeyboardMarkup(buttons)
     await update.message.reply_text(
-        "Проверь свое здоровье сегодня - будь здоров завтра! 💚"
-        "Выберите, что вам интересно :",
-        reply_markup=reply_markup
+        "Проверь свое здоровье сегодня - будь здоров завтра!\n\n"
+        "<b>💚 Профилактика</b>\n"
+        " На чекап выявляются предвестники заболеваний и по результатам Вы сможете "
+        "откорректировать свое здоровье, не прибегая к помощи лекарств.\n\n"
+        "<b>💚 Экономия времени</b>\n"
+        " Важно вовремя выявить заболевание и как можно раньше начать его лечить.\n\n"
+        "<b>💚 Финансовая выгода</b>\n"
+        " Затраты на Чекап сегодня — это инвестиция в Ваше будущее здоровье!\n\n"
+        "Выберите, что вам интересно:",
+        reply_markup=reply_markup, parse_mode="HTML"
     )
 
 
@@ -295,7 +302,47 @@ async def button_click_handler(update: Update, context: CallbackContext) -> None
             "Прием проводится в порядке живой очереди или по предварительной записи. Пациент должен иметь при себе следующие документы: "
             "Удостоверение личности/паспорт/вид на жительство. Направление врача или письменная рекомендация врача в консультативном листе/выписку из амбулаторной карты (при наличии)."
         )
-
+    elif callback_data == 'for_men':
+        new_text = (
+            "Заботьтесь о Своем Здоровье Прямо Сейчас! Выберите Свой Идеальный Чекап Пакет!\n\n"
+            "💚 Мужской Базовый 300 050 ₸\n"
+            "💚 Мужской ОНКО 334 830 ₸\n"
+            "💚 Сердце 149 650 ₸\n"
+         )
+        keyboard = [
+            [InlineKeyboardButton("Записаться",
+                                  url='https://docs.google.com/forms/d/1pOkDdSC6pBuLvMjqWZw6GyZ7cL3tWlnrStwFXYYwr04/viewform?edit_requested=true')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text=new_text, reply_markup=reply_markup, parse_mode='HTML')
+        return
+    elif callback_data == 'for_children':
+        new_text = (
+            "Заботьтесь о Своем Здоровье Прямо Сейчас! Выберите Свой Идеальный Чекап Пакет!\n\n"
+            "💚 Детский Базовый 125 490 ₸\n"
+            "💚 Сердце 149 650 ₸\n"
+         )
+        keyboard = [
+            [InlineKeyboardButton("Записаться",
+                                  url='https://docs.google.com/forms/d/1pOkDdSC6pBuLvMjqWZw6GyZ7cL3tWlnrStwFXYYwr04/viewform?edit_requested=true')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text=new_text, reply_markup=reply_markup, parse_mode='HTML')
+        return
+    elif callback_data == 'for_women':
+        new_text = (
+            "Заботьтесь о Своем Здоровье Прямо Сейчас! Выберите Свой Идеальный Чекап Пакет!\n\n"
+            "💚 Женский Базовый 310 570 ₸\n"
+            "💚 Женский ОНКО 371 950 ₸\n"
+            "💚 Сердце 149 650 ₸\n"
+         )
+        keyboard = [
+            [InlineKeyboardButton("Записаться",
+                                  url='https://docs.google.com/forms/d/1pOkDdSC6pBuLvMjqWZw6GyZ7cL3tWlnrStwFXYYwr04/viewform?edit_requested=true')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text=new_text, reply_markup=reply_markup, parse_mode='HTML')
+        return
     keyboard = [
         [InlineKeyboardButton("Записаться", callback_data='appointment')],
     ]
