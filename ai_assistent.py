@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, CallbackContext
 from groq import Groq
 import logging
 
@@ -10,13 +10,11 @@ logger = logging.getLogger(__name__)
 client = Groq(api_key="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")
 
 
-async def call_groq_api(message_content: str) -> str:
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Ты виртуальный ассистент в медицинской клинике Green Clinic."
+async def call_groq_api(messages: list) -> str:
+    # System message to guide the AI's responses
+    system_message = {
+        "role": "system",
+        "content": "Ты виртуальный ассистент в медицинской клинике Green Clinic."
                                "Ты отвечаешь только на вопросы пациентов про их состояние, и даешь им советы."
                                "Ты очень любишь их, и вежлив. Отвечай только на русском, не добавляй английских слов."
                                "Под конец говори им то что все таки лучше следует провести глубокий анализ в нашей клинике."
@@ -101,12 +99,14 @@ async def call_groq_api(message_content: str) -> str:
                                "Эндоскопия"
                                "Ташимов Ренат Имангалиевич принимает с понедельника по пятницу с 09:00 до 17:00."
                                "Кокен Муратбек принимает с понедельника по пятницу с 08:00 до 17:00."
-                },
-                {
-                    "role": "user",
-                    "content": message_content
-                }
-            ],
+    }
+
+    try:
+        # Add system message at the beginning of the conversation history
+        conversation_with_system_message = [system_message] + messages
+
+        chat_completion = client.chat.completions.create(
+            messages=conversation_with_system_message,
             model="llama-3.1-70b-versatile"
         )
         return chat_completion.choices[0].message.content
@@ -115,12 +115,34 @@ async def call_groq_api(message_content: str) -> str:
         return "Sorry, I couldn't process your request."
 
 
-# Define the Telegram bot function
 async def ai_assistant(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_message = update.message.text
     logger.info(f"Received message: {user_message}")
-    ai_response = await call_groq_api(user_message)
+
+    # Retrieve conversation history from user_data
+    if "conversation_history" not in context.user_data:
+        context.user_data["conversation_history"] = []
+
+    if user_message.lower() == "/clear":
+        await clear_history(update, context)
+        return
+
+    # Append user message to conversation history
+    context.user_data["conversation_history"].append({
+        "role": "user",
+        "content": user_message
+    })
+
+    # Get the response from the AI
+    ai_response = await call_groq_api(context.user_data["conversation_history"])
     logger.info(f"AI response: {ai_response}")
+
+    # Append AI response to conversation history
+    context.user_data["conversation_history"].append({
+        "role": "assistant",
+        "content": ai_response
+    })
+
     await update.message.reply_text(ai_response)
 
 
@@ -132,3 +154,8 @@ async def ai_assistant_respond(update: Update, context) -> None:
 async def under_development(update: Update, context) -> None:
     under_development_message = "Я в разработке...🛠"
     await update.message.reply_text(under_development_message)
+
+
+async def clear_history(update: Update, context: CallbackContext) -> None:
+    context.user_data["conversation_history"] = []
+    await update.message.reply_text("Запись памяти была очищена! Задавайте ваши вопросы.")
