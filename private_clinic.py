@@ -1,5 +1,9 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 from telegram.ext import CallbackContext
+
+from buttons import start_button
+from models import specialists
 
 
 async def private_clinic_button(update: Update, context: CallbackContext) -> None:
@@ -272,6 +276,20 @@ async def button_click_handler(update: Update, context: CallbackContext) -> None
     elif callback_data == 'appointment':
         await query.message.reply_text("Я в разработке...🛠")
         return
+    elif callback_data == 'confirm_appointment':
+        # Retrieve confirmation text from user data
+        confirmation_text = context.user_data.get('confirmation_text', 'Информация не найдена.')
+        other_bot_chat_id = '-1002235972159'  # Replace with the chat ID of the other bot
+        await context.bot.send_message(chat_id=other_bot_chat_id, text=confirmation_text, parse_mode=ParseMode.HTML)
+
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(text="Ваша запись подтверждена. Спасибо!")
+
+        # Send start buttons
+        await start_button(update, context)
+
+        return
     elif callback_data == 'appointment_mri':
         new_text = (
             "<b>💚 Длительность</b>\n"
@@ -308,7 +326,7 @@ async def button_click_handler(update: Update, context: CallbackContext) -> None
             "💚 Мужской Базовый 300 050 ₸\n"
             "💚 Мужской ОНКО 334 830 ₸\n"
             "💚 Сердце 149 650 ₸\n"
-         )
+        )
         keyboard = [
             [InlineKeyboardButton("Записаться",
                                   url='https://docs.google.com/forms/d/1pOkDdSC6pBuLvMjqWZw6GyZ7cL3tWlnrStwFXYYwr04/viewform?edit_requested=true')],
@@ -321,7 +339,7 @@ async def button_click_handler(update: Update, context: CallbackContext) -> None
             "Заботьтесь о Своем Здоровье Прямо Сейчас! Выберите Свой Идеальный Чекап Пакет!\n\n"
             "💚 Детский Базовый 125 490 ₸\n"
             "💚 Сердце 149 650 ₸\n"
-         )
+        )
         keyboard = [
             [InlineKeyboardButton("Записаться",
                                   url='https://docs.google.com/forms/d/1pOkDdSC6pBuLvMjqWZw6GyZ7cL3tWlnrStwFXYYwr04/viewform?edit_requested=true')],
@@ -335,7 +353,7 @@ async def button_click_handler(update: Update, context: CallbackContext) -> None
             "💚 Женский Базовый 310 570 ₸\n"
             "💚 Женский ОНКО 371 950 ₸\n"
             "💚 Сердце 149 650 ₸\n"
-         )
+        )
         keyboard = [
             [InlineKeyboardButton("Записаться",
                                   url='https://docs.google.com/forms/d/1pOkDdSC6pBuLvMjqWZw6GyZ7cL3tWlnrStwFXYYwr04/viewform?edit_requested=true')],
@@ -352,15 +370,6 @@ async def button_click_handler(update: Update, context: CallbackContext) -> None
     await query.edit_message_text(text=new_text, reply_markup=reply_markup, parse_mode='HTML')
 
 
-specialties = [
-    "Аллергология", "Гастроэнтерология", "Гепатология", "Гинекология", "Дерматология",
-    "Кардиология", "Лечебный Массаж", "Неврология", "Нейрохирургия", "Общая Хирургия",
-    "Отоларингология", "Офтальмология", "Маммология", "Педиатрия", "Проктология",
-    "Пульмонология", "Ревматология", "Терапия", "Травматология", "УЗИ", "Урология",
-    "Физиотерапия", "Флебология", "Эндокринология", "Эндоскопия", "Назад в меню"
-]
-
-
 # Function to generate keyboard
 def generate_keyboard(buttons, columns=3):
     keyboard = []
@@ -370,14 +379,23 @@ def generate_keyboard(buttons, columns=3):
     return keyboard
 
 
+def generate_keyboard_spec(options, columns=2):
+    options_list = list(options)  # Convert dict_keys to a list
+    keyboard = [options_list[i:i + columns] for i in range(0, len(options_list), columns)]
+    return keyboard
+
+
 async def specialties_handler(update: Update, context: CallbackContext) -> None:
     message_text = update.message.text
     if message_text == "Направления 🗺️":
-        keyboard = generate_keyboard(specialties, columns=3)
+        keyboard = generate_keyboard_spec(specialists.keys(), columns=3)
         new_text = "Выберите направление:"
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await update.message.reply_text(text=new_text, reply_markup=reply_markup)
+    elif message_text in specialists:
+        selected_specialty = message_text
+        specialists_list = "\n".join(specialists[selected_specialty])
+        new_text = f"Специалисты по направлению {selected_specialty}:\n\n{specialists_list}"
+        await update.message.reply_text(new_text)
     else:
         await update.message.reply_text("Unexpected message received.")
-
-

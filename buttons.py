@@ -2,48 +2,50 @@ import requests
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ContextTypes, MessageHandler, CommandHandler, filters, CallbackContext
 
-async def advertise_buttons(update: Update, context: CallbackContext) -> None:
-    user = update.message.from_user
-    buttons = [
-        [KeyboardButton("Все объявления")],
-        [KeyboardButton("Создать объявление")],
-        [KeyboardButton("Создать объявления по файлу")],
-        [KeyboardButton("Статистика")],
-        [KeyboardButton("Обратно в главную")]
-    ]
-    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    await update.message.reply_text(
-        f"Привет, {user.first_name}! Здесь вы можете продвигать свои рекламы на Olx.kz. Выберите действие:",
-        reply_markup=reply_markup
-    )
-
-
-async def secret_settings_buttons(update: Update, context: CallbackContext) -> None:
-    user = update.message.from_user
-    buttons = [
-        [KeyboardButton("Get list of my secret keys")],
-        [KeyboardButton("Add secret key")],
-        [KeyboardButton("Обратно в главную")]
-    ]
-    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    await update.message.reply_text(
-        f"{user.first_name}, это настройки секретного ключа на платформе Olx Developers. Выберите действие:",
-        reply_markup=reply_markup
-    )
-
 
 async def start_button(update: Update, context: CallbackContext) -> None:
     context.user_data["is_text_for_adding"] = False
-    user = update.message.from_user
+
+    # Determine the correct chat_id and user based on the source of the update
+    if update.message:
+        user = update.message.from_user
+        chat_id = update.message.chat_id
+    else:
+        user = update.callback_query.from_user
+        chat_id = update.callback_query.message.chat_id
+
     buttons = [
         [KeyboardButton("График Работы 🕒")],
         [KeyboardButton("Виртуальный ассистент 🤖")],
         [KeyboardButton("Платная поликлиника 🏥")],
         [KeyboardButton("Контакты 📞")],
         [KeyboardButton("Где мы расположены 📍")],
+        [KeyboardButton("Изменить язык 🌐")]
     ]
     reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    await update.message.reply_text(
-        f"👋Добрый день, {user.first_name}! Я официальный бот медицинского центра <b>Green Clinic</b>💚. Выберите действие:",
-        reply_markup=reply_markup, parse_mode="HTML"
+
+    # Send a new message with the buttons
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"👋Добрый день, {user.first_name}! Я официальный бот медицинского центра <b>Green Clinic</b>💚. Выберите действие:",
+        reply_markup=reply_markup,
+        parse_mode="HTML"
     )
+
+    # buttons = [
+    #     [KeyboardButton("Жұмыс кестесі 🕒")],
+    #     [KeyboardButton("Виртуалды ассистент 🤖")],
+    #     [KeyboardButton("Жекеменшік поликлиника 🏥")],
+    #     [KeyboardButton("Байланыс 📞")],
+    #     [KeyboardButton("Орналасқан жеріміз 📍")],
+    #     [KeyboardButton("Тілді өзгерту 🌐")]
+    # ]
+    # reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    #
+    # # Send a new message with the buttons
+    # await context.bot.send_message(
+    #     chat_id=chat_id,
+    #     text=f"👋 Сәлем, {user.first_name}! Мен <b>Green Clinic</b> медициналық орталығының ресми боты 💚. Әрекетті таңдаңыз:",
+    #     reply_markup=reply_markup,
+    #     parse_mode="HTML"
+    # )
